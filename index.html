@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Al Centauro</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.27.0"
+  }
+}
+</script>
+  <style>
+    :root {
+      --bg-color: #111827; /* gray-900 */
+      --text-primary: #ffffff;
+      --text-secondary: #9ca3af; /* gray-400 */
+      --brand-emerald: #10b981; /* emerald-500 */
+    }
+
+    body {
+      font-family: 'Manrope', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-primary);
+      overflow: hidden;
+    }
+
+    @keyframes fade-in {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+      animation: fade-in 0.6s ease-out forwards;
+    }
+    
+    .fade-out {
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+    }
+
+    @keyframes radar-sweep {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .radar-sweep-animation::after {
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 150%;
+        height: 150%;
+        background: conic-gradient(from 0deg, transparent 0%, transparent 75%, rgba(16, 185, 129, 0.3) 100%);
+        animation: radar-sweep 2s linear infinite;
+        transform-origin: 0% 0%;
+        margin-left: -75%;
+        margin-top: -75%;
+    }
+  </style>
+</head>
+<body class="text-slate-800">
+  <div id="root"></div>
+</body>
+</html>

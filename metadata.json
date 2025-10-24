@@ -1,0 +1,7 @@
+{
+  "name": "Al Centauro",
+  "description": "Una aplicación para calcular la ruta, distancia y tiempo estimado de llegada desde tu ubicación actual hasta el Barrio El Centauro en Esteban Echeverria.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
