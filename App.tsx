@@ -1,16 +1,54 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import type { Coordinates, RouteInfo } from './types';
 import { getRouteInfo } from './services/geminiService';
 
 const DESTINATION_ADDRESS = "Barrio El Centauro, Sargento Cabral 2800, Esteban Echeverría, Buenos Aires";
 
-type AppState = 'initial' | 'loading' | 'results' | 'error';
+type AppState = 'initial' | 'loading' | 'results' | 'error' | 'apiKey';
+
+const ApiKeyView: React.FC<{ onApiKeySubmit: (key: string) => void }> = ({ onApiKeySubmit }) => {
+    const [key, setKey] = useState('');
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (key.trim()) {
+            onApiKeySubmit(key.trim());
+        }
+    };
+
+    return (
+        <div className="text-center animate-fade-in flex flex-col items-center justify-center h-full space-y-6 p-4">
+            <h1 className="text-2xl font-bold text-emerald-400">Bienvenido</h1>
+            <p className="text-gray-300">Por favor, ingresa tu clave de API de Google para continuar.</p>
+            <form onSubmit={handleSubmit} className="w-full max-w-sm flex flex-col gap-4">
+                <input
+                    type="password"
+                    value={key}
+                    onChange={(e) => setKey(e.target.value)}
+                    placeholder="Pega tu clave de API aquí"
+                    className="w-full px-4 py-3 bg-gray-800 text-white border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+                <button
+                    type="submit"
+                    className="w-full px-6 py-3 bg-emerald-500 text-white font-bold rounded-lg shadow-lg transition-transform transform hover:scale-105 active:scale-95 disabled:bg-gray-600 disabled:cursor-not-allowed"
+                    disabled={!key.trim()}
+                >
+                    Guardar y Continuar
+                </button>
+            </form>
+             <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-400 hover:text-emerald-400 transition-colors">
+                ¿No tienes una clave? Obtenla aquí.
+            </a>
+        </div>
+    );
+};
+
 
 const InitialView: React.FC<{ onStart: () => void; isFading: boolean }> = ({ onStart, isFading }) => (
     <div className={`flex flex-col h-full justify-between items-center text-center transition-all duration-500 ${isFading ? 'fade-out' : 'animate-fade-in'}`}>
         <div className="w-full pt-8">
             <div className="bg-white rounded-2xl shadow-lg inline-block p-4">
-              <img src="./centauro.png" alt="El Centauro Logo" className="w-64 h-auto" />
+              <img src="centauro.png" alt="El Centauro Logo" className="w-64 h-auto" />
             </div>
             <p className="mt-8 text-xl text-gray-300">¿Listo para tu aventura hacia El Centauro?</p>
         </div>
@@ -92,11 +130,26 @@ const ResultsView: React.FC<{ info: RouteInfo; url: string; onReset: () => void;
 );
 
 const App: React.FC = () => {
-  const [appState, setAppState] = useState<AppState>('initial');
+  const [apiKey, setApiKey] = useState<string | null>(null);
+  const [appState, setAppState] = useState<AppState>('apiKey');
   const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [coordinates, setCoordinates] = useState<Coordinates | null>(null);
   const [isFading, setIsFading] = useState(false);
+
+  useEffect(() => {
+    const storedKey = sessionStorage.getItem('gemini-api-key');
+    if (storedKey) {
+        setApiKey(storedKey);
+        setAppState('initial');
+    }
+  }, []);
+
+  const handleApiKeySubmit = (key: string) => {
+    sessionStorage.setItem('gemini-api-key', key);
+    setApiKey(key);
+    setAppState('initial');
+  };
 
   const resetState = () => {
       setError(null);
@@ -107,6 +160,11 @@ const App: React.FC = () => {
   };
 
   const handleGetRoute = useCallback(async () => {
+    if (!apiKey) {
+        setError("La clave de API no está configurada.");
+        setAppState('error');
+        return;
+    }
     setAppState('loading');
     setError(null);
 
@@ -121,7 +179,7 @@ const App: React.FC = () => {
         const userCoords: Coordinates = { latitude: position.coords.latitude, longitude: position.coords.longitude };
         setCoordinates(userCoords);
         try {
-          const info = await getRouteInfo(userCoords);
+          const info = await getRouteInfo(userCoords, apiKey);
           setRouteInfo(info);
           setAppState('results');
         } catch (err: any) {
@@ -139,7 +197,7 @@ const App: React.FC = () => {
       },
       { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
     );
-  }, []);
+  }, [apiKey]);
   
   const startMission = useCallback(() => {
       setIsFading(true);
@@ -156,6 +214,7 @@ const App: React.FC = () => {
 
   const renderContent = () => {
       switch(appState) {
+          case 'apiKey': return <ApiKeyView onApiKeySubmit={handleApiKeySubmit} />;
           case 'loading': return <LoadingView />;
           case 'error': return <ErrorView message={error!} onRetry={startMission} />;
           case 'results': return <ResultsView info={routeInfo!} url={getGoogleMapsUrl} onReset={resetState} />;

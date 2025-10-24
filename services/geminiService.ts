@@ -3,9 +3,11 @@ import type { Coordinates, RouteInfo } from '../types';
 
 const DESTINATION_ADDRESS = "Barrio El Centauro, Sargento Cabral 2800, 1804 Esteban Echeverria, Buenos Aires, Argentina";
 
-export async function getRouteInfo(start: Coordinates): Promise<RouteInfo> {
+// Modificado: La función ahora requiere el apiKey
+export async function getRouteInfo(start: Coordinates, apiKey: string): Promise<RouteInfo> {
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        // Modificado: Se usa el apiKey proporcionado para inicializar
+        const ai = new GoogleGenAI({ apiKey });
         const prompt = `Calcula la distancia y el tiempo estimado de viaje en coche desde la ubicación actual hasta '${DESTINATION_ADDRESS}'. Responde únicamente con un objeto JSON que tenga las claves 'distancia' y 'tiempo'. Por ejemplo: {"distancia": "10 km", "tiempo": "25 minutos"}`;
         
         const response = await ai.models.generateContent({
